@@ -11,7 +11,7 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            const SizedBox(height: 20),
+            const SizedBox(height: 8),
             _buildCarImage(),
             _buildCarModel(),
             _buildCarInfoSection(),
@@ -29,7 +29,7 @@ class HomeScreen extends StatelessWidget {
 
   Widget _buildCarModel() {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      padding: const EdgeInsets.symmetric( horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: const [

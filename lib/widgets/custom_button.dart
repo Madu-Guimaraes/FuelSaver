@@ -10,7 +10,7 @@ class CustomButton extends StatelessWidget {
   final IconData? icon;
 
   const CustomButton({
-    Key? key,
+    super.key,
     required this.label,
     required this.onPressed,
     this.color = Colors.transparent,
@@ -18,7 +18,7 @@ class CustomButton extends StatelessWidget {
     this.borderRadius = 8.0,
     this.padding = 10.0,
     this.icon,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
