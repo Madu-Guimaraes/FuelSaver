@@ -20,48 +20,34 @@ class _RegisterFuelingState extends State<RegisterFueling> {
   final TextEditingController litersController = TextEditingController();
 
   List<DateTime> _selectedDates = [];
-  final RefuelController refuelController =
-      RefuelController(); // Instância do controlador
+  final RefuelController refuelController = RefuelController(); // Instância do controlador
 
   // Função para abrir o calendário
- void _openCalendar() async {
-  final List<DateTime>? result = await Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => CalendarScreen(
-        initialSelectedDates: _selectedDates,
+  void _openCalendar() async {
+    final List<DateTime>? result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CalendarScreen(
+          initialSelectedDates: _selectedDates,
+        ),
       ),
-    ),
-  );
+    );
 
-  if (result != null && result.length == 2) {
-    setState(() {
-      // Ordena as datas para garantir que a primeira é o início e a segunda é o fim
-      result.sort();
-
-      // Gera todas as datas entre a data inicial e a final
-      final startDate = result.first;
-      final endDate = result.last;
-
-      _selectedDates = [];
-      for (var date = startDate;
-          date.isBefore(endDate) || date.isAtSameMomentAs(endDate);
-          date = date.add(const Duration(days: 1))) {
-        _selectedDates.add(date);
-      }
-
-      // Atualiza o campo de texto com o intervalo
-      dateController.text =
-          '${DateFormat('dd/MM/yyyy').format(startDate)} - ${DateFormat('dd/MM/yyyy').format(endDate)}';
-    });
-  } else if (result != null && result.length == 1) {
-    setState(() {
-      // Apenas uma data foi selecionada
-      _selectedDates = result;
-      dateController.text = DateFormat('dd/MM/yyyy').format(result.first);
-    });
+    if (result != null && result.isNotEmpty) {
+      setState(() {
+        _selectedDates = result;
+        if (_selectedDates.length == 1) {
+          // Se houver apenas uma data selecionada
+          dateController.text = DateFormat('dd/MM/yyyy').format(_selectedDates.first);
+        } else if (_selectedDates.length > 1) {
+          // Se houver mais de uma data selecionada
+          final startDate = DateFormat('dd/MM/yyyy').format(_selectedDates.first);
+          final endDate = DateFormat('dd/MM/yyyy').format(_selectedDates.last);
+          dateController.text = '$startDate - $endDate';
+        }
+      });
+    }
   }
-}
 
   // Função para salvar os dados de abastecimento
   void _saveData() {
