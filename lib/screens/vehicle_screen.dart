@@ -25,6 +25,7 @@ class VehicleScreen extends StatelessWidget {
                     InputField(
                       label: "Tipo de Automóvel",
                       icon: Icons.directions_car,
+                      borderBottom: false,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Este campo é obrigatório';
@@ -36,15 +37,18 @@ class VehicleScreen extends StatelessWidget {
                     InputField(
                       label: "Digite o Modelo do Automóvel",
                       icon: Icons.drive_eta,
+                      borderBottom: false,
                     ),
                     const SizedBox(height: 15),
                     InputField(
                       label: "Digite a Marca do Automóvel",
+                      borderBottom: false,
                       icon: Icons.branding_watermark,
                     ),
                     const SizedBox(height: 15),
                     InputField( //input personalizado
                       label: "Digite o Ano do Automóvel",
+                      borderBottom: false,
                       icon: Icons.calendar_today,
                       keyboardType: TextInputType.number,
                     ),

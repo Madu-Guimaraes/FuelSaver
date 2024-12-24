@@ -6,6 +6,9 @@ class InputField extends StatelessWidget {
   final TextInputType keyboardType;
   final String? Function(String?)? validator;
   final TextEditingController? controller;
+  final bool filled; // Define se o fundo será preenchido
+  final bool readOnly; // Define se o campo é apenas leitura
+  final bool borderBottom; // Controla a borda inferior
 
   const InputField({
     Key? key,
@@ -14,6 +17,9 @@ class InputField extends StatelessWidget {
     this.keyboardType = TextInputType.text,
     this.validator,
     this.controller,
+    this.filled = true, // Fundo preenchido por padrão
+    this.readOnly = false, // Campo editável por padrão
+    this.borderBottom = true, // Borda inferior ativada por padrão
   }) : super(key: key);
 
   @override
@@ -22,17 +28,36 @@ class InputField extends StatelessWidget {
       controller: controller,
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(color: Color(0xFFB0B0B0)), //cor do placeholder
-        prefixIcon: Icon(icon, color: Color(0xFFB0B0B0),), //cor do icon
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8), // Bordas arredondadas
-          borderSide: BorderSide.none,
-        ),
-        filled: true, // Fundo preenchido
-        fillColor: Color(0xFFFEFEFE), // Cor de fundo
+        labelStyle: const TextStyle(color: Color(0xFFB0B0B0)), // Cor do placeholder
+        prefixIcon: Icon(icon, color: const Color(0xFFB0B0B0)), // Ícone do campo
+        border: borderBottom
+            ? const UnderlineInputBorder( // Borda inferior padrão
+                borderSide: BorderSide(color: Colors.grey),
+                borderRadius: BorderRadius.all(
+                  Radius.circular(8),)
+              )
+            : InputBorder.none, // Sem borda
+        enabledBorder: borderBottom
+            ? const UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.grey),
+                borderRadius: BorderRadius.all(
+                  Radius.circular(8),)
+              )
+            : InputBorder.none,
+        focusedBorder: borderBottom
+            ? const UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.blue, width: 2.0),
+                borderRadius: BorderRadius.all(
+                  Radius.circular(8),)
+              )
+            : InputBorder.none,
+        filled: filled, // Fundo preenchido
+        fillColor: filled ? const Color(0xFFFEFEFE) : Colors.transparent, // Cor do fundo
       ),
       keyboardType: keyboardType,
       validator: validator,
+      readOnly: readOnly, // Campo somente leitura
     );
   }
 }
+
