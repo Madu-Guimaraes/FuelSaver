@@ -4,14 +4,22 @@ class RefuelController {
     return liters * pricePerLiter;
   }
 
+  // Função para calcular os litros com base no valor total abastecido
+  double calculateLiters(double totalCost, double pricePerLiter) {
+    if (pricePerLiter <= 0) {
+      throw ArgumentError("O preço por litro deve ser maior que zero.");
+    }
+    return totalCost / pricePerLiter;
+  }
+
   // Função para validar os dados de abastecimento
   bool validateRefuelData({
     required double odometer,
     required String fuelType,
     required double pricePerLiter,
-    required double liters,
+    required double totalCost,
   }) {
-    if (odometer <= 0 || pricePerLiter <= 0 || liters <= 0 || fuelType.isEmpty) {
+    if (odometer <= 0 || pricePerLiter <= 0 || totalCost <= 0 || fuelType.isEmpty) {
       return false;
     }
     return true;
