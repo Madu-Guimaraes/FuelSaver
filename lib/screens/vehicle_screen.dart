@@ -196,7 +196,18 @@ class _VehicleScreenState extends State<VehicleScreen> {
                       );
                     }),
 
+                    // Botão "X" para limpar todos os inputs adicionais
+                    if (additionalInputs.isNotEmpty)
+                      Center(
+                        child: FloatingActionButton(
+                          mini: true,
+                          onPressed: _clearAllAdditionalInputs,
+                          child: const Icon(Icons.close),
+                        ),
+                      ),
+
                     // Botão para adicionar mais veículos
+                    const SizedBox(height: 10),
                     TextButton(
                       onPressed: _addVehicleInput,
                       child: Row(
@@ -209,17 +220,8 @@ class _VehicleScreenState extends State<VehicleScreen> {
                       ),
                     ),
 
-                    // Botão "X" para limpar todos os inputs adicionais
-                    if (additionalInputs.isNotEmpty)
-                      Center(
-                        child: FloatingActionButton(
-                          mini: true,
-                          onPressed: _clearAllAdditionalInputs,
-                          child: const Icon(Icons.close),
-                        ),
-                      ),
-
                     // Botão para submeter
+                    const SizedBox(height: 10),
                     SizedBox(
                       height: 40,
                       width: 200,
