@@ -2,9 +2,9 @@
 import 'package:flutter/material.dart';
 import 'package:fuel_saver/screens/home_screen.dart';
 import 'package:fuel_saver/screens/register_fueling.dart';
-import 'package:fuel_saver/screens/reports_screen.dart';
 import 'package:fuel_saver/screens/user_screen.dart';
 import 'package:fuel_saver/screens/vehicle_screen.dart';
+import 'package:fuel_saver/screens/reports_screen.dart';
 
 class BottomNavBarScreen extends StatefulWidget {
   const BottomNavBarScreen({super.key});
@@ -22,7 +22,7 @@ class _BottomNavBarScreenState extends State<BottomNavBarScreen> {
     HomeScreen(),
     VehicleScreen(),
     RegisterFueling(),
-    ReportsScreen(),
+    ReportScreen(),
     UserScreen(),
   ];
 

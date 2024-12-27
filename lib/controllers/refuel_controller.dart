@@ -1,4 +1,7 @@
 class RefuelController {
+  // Lista para armazenar os dados de abastecimento
+  final List<Map<String, dynamic>> _refuels = [];
+
   // Função para calcular o custo total
   double calculateTotalCost(double liters, double pricePerLiter) {
     return liters * pricePerLiter;
@@ -28,6 +31,12 @@ class RefuelController {
   // Função para salvar os dados de abastecimento
   Future<void> saveRefuelData(Map<String, dynamic> refuelData) async {
     // Aqui você pode salvar os dados no banco de dados ou em uma API
+    _refuels.add(refuelData);  // Adiciona o novo abastecimento à lista
     print("Dados de abastecimento salvos: $refuelData");
+  }
+
+  // Método para obter os dados de abastecimento
+  List<Map<String, dynamic>> getRefuels() {
+    return _refuels;
   }
 }
