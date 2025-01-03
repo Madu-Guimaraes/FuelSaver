@@ -14,18 +14,19 @@ class ReportScreen extends StatefulWidget {
 class RefuelController {
   List<Map<String, dynamic>> getAllRefuelData() {
     return [
-      {'date': '25/12/2024', 'fuelType': 'Gasolina', 'liters': 20},
-      {'date': '26/12/2024', 'fuelType': 'Álcool', 'liters': 15},
+      {'date': '25/12/2024', 'fuelType': 'Gasolina', 'liters': 20, 'odometer': 1000, 'price': 5.5},
+      {'date': '26/12/2024', 'fuelType': 'Álcool', 'liters': 15, 'odometer': 1050, 'price': 4.2},
+      // Adicione mais dados de combustível aqui
     ];
   }
 }
-
 
 class _ReportScreenState extends State<ReportScreen> {
   final RefuelController _refuelController = RefuelController();
   DateTime? _startDate;
   DateTime? _endDate;
   String? _selectedFuelType;
+  String? _selectedFilter;
 
   List<Map<String, dynamic>> _filteredData = [];
 
@@ -69,14 +70,14 @@ class _ReportScreenState extends State<ReportScreen> {
       );
     }
 
-    final List<BarChartGroupData> barGroups = _filteredData.asMap().entries.map((entry) {
+    final barGroups = _filteredData.asMap().entries.map((entry) {
       final index = entry.key;
       final data = entry.value;
       return BarChartGroupData(
         x: index,
         barRods: [
           BarChartRodData(
-            toY: data['liters'],
+            toY: data['liters'].toDouble(),
             color: Colors.blue,
           ),
         ],
@@ -107,7 +108,28 @@ class _ReportScreenState extends State<ReportScreen> {
           ),
         ),
         barGroups: barGroups,
+        gridData: FlGridData(show: false),
+        borderData: FlBorderData(show: false),
       ),
+    );
+  }
+
+  Widget _buildFilterDropdown() {
+    return DropdownButton<String>(
+      value: _selectedFilter,
+      hint: const Text("Selecione o filtro"),
+      items: ['Economia (km/L)', 'Comparação por Combustível', 'Gastos Mensais', 'Gastos Semanais'].map((filter) {
+        return DropdownMenuItem(
+          value: filter,
+          child: Text(filter),
+        );
+      }).toList(),
+      onChanged: (value) {
+        setState(() {
+          _selectedFilter = value;
+        });
+        _filterData();
+      },
     );
   }
 
@@ -148,8 +170,16 @@ class _ReportScreenState extends State<ReportScreen> {
               ],
             ),
             const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: _buildFilterDropdown(),
+            ),
+            const SizedBox(height: 16),
             Expanded(
-              child: _buildBarChart(),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: _buildBarChart(),
+              ),
             ),
           ],
         ),

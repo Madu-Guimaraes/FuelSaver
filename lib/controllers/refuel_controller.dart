@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 class RefuelController {
   // Lista para armazenar os dados de abastecimento
   final List<Map<String, dynamic>> _refuels = [];
@@ -38,5 +40,22 @@ class RefuelController {
   // Método para obter os dados de abastecimento
   List<Map<String, dynamic>> getRefuels() {
     return _refuels;
+  }
+
+  // Função para filtrar os dados de abastecimento por intervalo de datas e tipo de combustível
+  List<Map<String, dynamic>> filterRefuels({
+    DateTime? startDate,
+    DateTime? endDate,
+    String? fuelType,
+  }) {
+    return _refuels.where((entry) {
+      final entryDate = DateFormat('dd/MM/yyyy').parse(entry['date']);
+      final isWithinDateRange = startDate != null &&
+          endDate != null &&
+          entryDate.isAfter(startDate.subtract(const Duration(days: 1))) &&
+          entryDate.isBefore(endDate.add(const Duration(days: 1)));
+      final isFuelTypeMatch = fuelType == null || entry['fuelType'] == fuelType;
+      return isWithinDateRange && isFuelTypeMatch;
+    }).toList();
   }
 }
