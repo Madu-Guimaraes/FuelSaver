@@ -22,7 +22,7 @@ class _BottomNavBarScreenState extends State<BottomNavBarScreen> {
     HomeScreen(),
     VehicleScreen(),
     RegisterFueling(),
-    ReportScreen(),
+    ReportsScreen(),
     UserScreen(),
   ];
 
