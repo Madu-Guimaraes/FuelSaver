@@ -1,39 +1,20 @@
-import 'package:fl_chart/fl_chart.dart';
+class RefuelController {
+  // Supondo que você tenha uma lista de registros de abastecimento
+  List<Map<String, dynamic>> refuels = [
+    {
+      'liters': 50.0,
+      'odometer': 12000.0,
+      'pricePerLiter': 5.0,
+      'date': DateTime.now(),
+    },
+    // Outros registros
+  ];
 
-class Report {
-  final int currentOdometer;
-  final int previousOdometer;
-  final double liters;
-
-  Report({
-    required this.currentOdometer,
-    required this.previousOdometer,
-    required this.liters,
-  });
-}
-
-List<FlSpot> generateData(List<Report> reports) {
-  return reports.map((report) {
-    double distance = (report.currentOdometer - report.previousOdometer).toDouble();
-    double economy = distance / report.liters;
-    return FlSpot(report.currentOdometer.toDouble(), economy);
-  }).toList();
-}
-
-List<FlSpot> generateFuelComparisonData(List<Report> reports) {
-  return reports.map((report) {
-    double distance = (report.currentOdometer - report.previousOdometer).toDouble();
-    double economy = distance / report.liters;
-    double costPerKm = 5.0 / economy; // Exemplo de preço por litro
-    return FlSpot(report.currentOdometer.toDouble(), costPerKm);
-  }).toList();
-}
-
-List<FlSpot> generateMonthlyExpensesData(List<Report> reports) {
-  return reports.map((report) {
-    double distance = (report.currentOdometer - report.previousOdometer).toDouble();
-    double economy = distance / report.liters;
-    double monthlyExpense = report.liters * 5.0; // Exemplo de preço por litro
-    return FlSpot(report.currentOdometer.toDouble(), monthlyExpense);
-  }).toList();
+  List<Map<String, dynamic>> filterRefuels({DateTime? startDate, DateTime? endDate}) {
+    return refuels.where((refuel) {
+      final date = refuel['date'];
+      return (startDate == null || date.isAfter(startDate)) &&
+          (endDate == null || date.isBefore(endDate));
+    }).toList();
+  }
 }
