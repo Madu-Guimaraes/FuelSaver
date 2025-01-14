@@ -1,8 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:fuel_saver/screens/type_fuel_screen.dart';
 import 'package:fuel_saver/widgets/calendar_widget.dart';
 import 'package:fuel_saver/widgets/input_field.dart';
-import 'package:intl/intl.dart'; // Para formatar as datas
+import 'package:intl/intl.dart';
 
 class RegisterFueling extends StatefulWidget {
   const RegisterFueling({super.key});
@@ -19,8 +20,21 @@ class _RegisterFuelingState extends State<RegisterFueling> {
   final TextEditingController totalCostController = TextEditingController();
   final TextEditingController litersController = TextEditingController();
 
-  List<Map<String, dynamic>> refuelDataList = []; // Lista para armazenar os dados de abastecimento
+  List<Map<String, dynamic>> refuelDataList = [];
   List<DateTime> _selectedDates = [];
+  Timer? _debounce;
+
+  // Função debounce para evitar chamadas frequentes de cálculos
+  void _onChangedDebounced(VoidCallback action) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), action);
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
 
   // Função para abrir o calendário
   void _openCalendar() async {
@@ -63,7 +77,7 @@ class _RegisterFuelingState extends State<RegisterFueling> {
     }
   }
 
-  // Função para calcular os litros automaticamente sem setState
+  // Função para calcular os litros
   void _calculateLiters() {
     if (totalCostController.text.isEmpty || pricePerLiterController.text.isEmpty) {
       return;
@@ -74,7 +88,7 @@ class _RegisterFuelingState extends State<RegisterFueling> {
       final double pricePerLiter = double.parse(pricePerLiterController.text);
 
       final double liters = totalCost / pricePerLiter;
-      litersController.text = liters.toStringAsFixed(2); // Atualiza diretamente sem setState
+      litersController.text = liters.toStringAsFixed(2);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Por favor, insira valores válidos para o cálculo!")),
@@ -94,45 +108,36 @@ class _RegisterFuelingState extends State<RegisterFueling> {
       return;
     }
 
-    double odometer = 0.0;
-    double pricePerLiter = 0.0;
-    double totalCost = 0.0;
-
     try {
-      odometer = double.parse(odometerController.text);
-      pricePerLiter = double.parse(pricePerLiterController.text);
-      totalCost = double.parse(totalCostController.text);
+      final refuelData = {
+        "odometer": double.parse(odometerController.text),
+        "fuelType": fuelTypeController.text,
+        "pricePerLiter": double.parse(pricePerLiterController.text),
+        "totalCost": double.parse(totalCostController.text),
+        "liters": double.parse(litersController.text),
+        "date": _selectedDates.isNotEmpty
+            ? DateFormat('dd/MM/yyyy').format(_selectedDates.first)
+            : '',
+      };
+
+      setState(() {
+        refuelDataList.add(refuelData);
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Dados de abastecimento salvos com sucesso!")),
+      );
+
+      _clearFields();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Por favor, insira valores válidos!")),
+        const SnackBar(content: Text("Erro ao salvar os dados. Verifique os campos!")),
       );
-      return;
     }
+  }
 
-    final refuelData = {
-      "odometer": odometer,
-      "fuelType": fuelTypeController.text,
-      "pricePerLiter": pricePerLiter,
-      "totalCost": totalCost,
-      "liters": double.parse(litersController.text),
-      "date": _selectedDates.isNotEmpty
-          ? DateFormat('dd/MM/yyyy').format(_selectedDates.first)
-          : '',
-    };
-
-    // Adicionando os dados à lista
-    setState(() {
-      refuelDataList.add(refuelData);
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text("Dados de abastecimento salvos com sucesso!"),
-        duration: const Duration(seconds: 5),
-      ),
-    );
-
-    // Limpar os campos
+  // Função para limpar os campos
+  void _clearFields() {
     setState(() {
       dateController.clear();
       odometerController.clear();
@@ -156,7 +161,6 @@ class _RegisterFuelingState extends State<RegisterFueling> {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
-              // Campos para inserir os dados
               InputField(
                 controller: dateController,
                 label: "Data",
@@ -188,7 +192,9 @@ class _RegisterFuelingState extends State<RegisterFueling> {
                 icon: Icons.attach_money,
                 filled: false,
                 borderBottom: true,
-                onChanged: (_) => _calculateLiters(),
+                onChanged: (_) {
+                  _onChangedDebounced(_calculateLiters);
+                },
               ),
               InputField(
                 controller: totalCostController,
@@ -196,7 +202,9 @@ class _RegisterFuelingState extends State<RegisterFueling> {
                 icon: Icons.money,
                 filled: false,
                 borderBottom: true,
-                onChanged: (_) => _calculateLiters(),
+                onChanged: (_) {
+                  _onChangedDebounced(_calculateLiters);
+                },
               ),
               InputField(
                 controller: litersController,
@@ -206,7 +214,6 @@ class _RegisterFuelingState extends State<RegisterFueling> {
                 readOnly: true,
                 borderBottom: true,
               ),
-              // Botões
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -217,32 +224,33 @@ class _RegisterFuelingState extends State<RegisterFueling> {
                   ),
                   const SizedBox(width: 16),
                   ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        dateController.clear();
-                        odometerController.clear();
-                        fuelTypeController.clear();
-                        pricePerLiterController.clear();
-                        totalCostController.clear();
-                        litersController.clear();
-                        _selectedDates = [];
-                      });
-                    },
+                    onPressed: _clearFields,
                     style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
                     child: const Text("Limpar", style: TextStyle(color: Colors.white)),
                   ),
                 ],
               ),
-              // Exibir dados salvos (opcional)
               const SizedBox(height: 20),
-              Text("Dados Salvos:"),
+              const Text("Dados Salvos:"),
               ListView.builder(
                 shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
                 itemCount: refuelDataList.length,
                 itemBuilder: (context, index) {
                   final refuel = refuelDataList[index];
-                  return ListTile(
-                    subtitle: Text("Odômetro: ${refuel['odometer']} - Combustível: ${refuel['fuelType']} - Data: ${refuel['date']} - Litros: ${refuel['liters']}"),
+                  return Card(
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    child: ListTile(
+                      title: Text("Odômetro: ${refuel['odometer']}"),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("Combustível: ${refuel['fuelType']}"),
+                          Text("Data: ${refuel['date']}"),
+                          Text("Litros: ${refuel['liters']}"),
+                        ],
+                      ),
+                    ),
                   );
                 },
               ),

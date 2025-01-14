@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:fuel_saver/widgets/calendar_widget.dart';
-import 'package:fuel_saver/controllers/refuel_controller.dart';
+import 'package:fuel_saver/controllers/reports_controller.dart';
 
 class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
@@ -14,7 +14,13 @@ class _ReportsScreenState extends State<ReportsScreen> {
   DateTime? startDate;
   DateTime? endDate;
   String selectedGraph = "Selecione um Gráfico";
-  final RefuelController refuelController = RefuelController();
+  
+  // Passando uma lista de registros de combustível fictícios para o ReportsController
+  final ReportsController reportsController = ReportsController([
+    {'date': DateTime(2025, 1, 1), 'odometer': 1000, 'liters': 50, 'fuelType': 'Gasolina', 'pricePerLiter': 5.0},
+    {'date': DateTime(2024, 1, 5), 'odometer': 1050, 'liters': 40, 'fuelType': 'Gasolina', 'pricePerLiter': 5.2},
+    // Adicione mais registros conforme necessário
+  ]);
 
   @override
   Widget build(BuildContext context) {
@@ -120,7 +126,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 sideTitles: SideTitles(
                   showTitles: true,
                   getTitlesWidget: (value, meta) {
-                    return Text('Abast.${value.toInt()}');
+                    return Text('Abast. ${value.toStringAsFixed(2)} L');
                   },
                 ),
               ),
@@ -137,6 +143,33 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 barRods: [BarChartRodData(toY: spot.y)],
               );
             }).toList(),
+            titlesData: FlTitlesData(
+              leftTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  getTitlesWidget: (value, meta) {
+                    switch (value.toInt()) {
+                      case 0:
+                        return Text('Gasolina');
+                      case 1:
+                        return Text('Álcool');
+                      case 2:
+                        return Text('Diesel');
+                      default:
+                        return Text('Outro');
+                    }
+                  },
+                ),
+              ),
+              bottomTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  getTitlesWidget: (value, meta) {
+                    return Text('${value.toStringAsFixed(2)} R\$');
+                  },
+                ),
+              ),
+            ),
           ),
         );
 
@@ -149,6 +182,25 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 barRods: [BarChartRodData(toY: spot.y)],
               );
             }).toList(),
+            titlesData: FlTitlesData(
+              leftTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  getTitlesWidget: (value, meta) {
+                    final month = DateTime(2025, value.toInt());
+                    return Text('${month.month}/${month.year}');
+                  },
+                ),
+              ),
+              bottomTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  getTitlesWidget: (value, meta) {
+                    return Text('R\$ ${value.toStringAsFixed(2)}');
+                  },
+                ),
+              ),
+            ),
           ),
         );
 
@@ -158,25 +210,33 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 
 List<FlSpot> _getGraphData() {
-  // Filtrando os dados com base nas datas selecionadas
-  final filteredData = refuelController.filterRefuels(
-    startDate: startDate,
-    endDate: endDate,
-  );
-
-  List<FlSpot> graphData = [];
-  
-  // Ajustando o cálculo dos dados para o gráfico
-  for (var entry in filteredData) {
-    final double liters = entry['liters'];
-    final double odometer = entry['odometer'];
-    final double pricePerLiter = entry['pricePerLiter']; // Obtendo o preço do combustível diretamente
-
-    // Aqui, você pode ajustar a lógica para refletir o gráfico desejado
-    graphData.add(FlSpot(odometer, liters / pricePerLiter)); // Exemplo: Dividir litros pelo preço do combustível
+  if (selectedGraph == "Economia Correspondente (km/l)") {
+    return reportsController.calculateEconomy(startDate, endDate);
+  } else if (selectedGraph == "Comparação por Combustível") {
+    final fuelComparison = reportsController.calculateFuelComparison(startDate, endDate);
+    return fuelComparison.entries.map((entry) {
+      int index = _getFuelTypeIndex(entry.key); 
+      return FlSpot(index.toDouble(), entry.value);
+    }).toList();
+  } else if (selectedGraph == "Gastos Mensais Totais") {
+    return reportsController.calculateMonthlyExpenses().entries.map((entry) {
+      return FlSpot(double.parse(entry.key.split('/')[0]), entry.value);
+    }).toList();
   }
+  return [];
+}
 
-  return graphData;
+int _getFuelTypeIndex(String fuelType) {
+  switch (fuelType) {
+    case 'Gasolina':
+      return 0;
+    case 'Álcool':
+      return 1;
+    case 'Diesel':
+      return 2;
+    default:
+      return 3; // Adicione mais combustíveis conforme necessário
+  }
 }
 
   String _formatDate(DateTime date) {
