@@ -5,40 +5,37 @@ class ReportsController {
 
   ReportsController(this.fuelRecords);
 
-// Função modificada para incluir a data e a economia
-List<ReportData> calculateEconomy(DateTime? startDate, DateTime? endDate) {
-  final filteredRecords = _filterRecords(startDate, endDate);
-  List<ReportData> results = [];
+  List<ReportData> calculateEconomy(DateTime? startDate, DateTime? endDate) {
+    final filteredRecords = _filterRecords(startDate, endDate);
+    List<ReportData> results = [];
 
-  for (int i = 0; i < filteredRecords.length; i++) {
-    final current = filteredRecords[i];
-    double? economy;
-    double? expense;
+    for (int i = 0; i < filteredRecords.length; i++) {
+      final current = filteredRecords[i];
+      double? economy;
+      double? expense;
 
-    if (i > 0) {
-      final previous = filteredRecords[i - 1];
-      final distance = current['odometer'] - previous['odometer'];
-      final liters = current['liters'];
+      if (i > 0) {
+        final previous = filteredRecords[i - 1];
+        final distance = current['odometer'] - previous['odometer'];
+        final liters = current['liters'];
 
-      if (liters != null && liters > 0) {
-        economy = distance / liters;
+        if (liters != null && liters > 0) {
+          economy = distance / liters;
+        }
+      } else {
+        economy = 0.0;  // Para o primeiro abastecimento, pode exibir 0 ou algum valor
       }
-    } else {
-      // Para o primeiro abastecimento, pode-se calcular a economia de forma diferente, 
-      // ou exibir um valor informativo.
-      economy = 0.0;  // Ou alguma lógica para o primeiro abastecimento.
+
+      expense = current['liters'] * current['pricePerLiter']; // Calculando o custo total
+      results.add(ReportData(
+        date: current['date'],
+        economy: economy ?? 0.0,
+        expense: expense ?? 0.0,
+      ));
     }
 
-    expense = current['liters'] * current['pricePerLiter']; // Calcule o custo total
-    results.add(ReportData(
-      date: current['date'],
-      economy: economy ?? 0.0,
-      expense: expense ?? 0.0,
-    ));
+    return results;
   }
-
-  return results;
-}
   // Nova função: Economia por tipo de combustível
 Map<String, Map<String, double>> calculateEconomyPerFuel(DateTime? startDate, DateTime? endDate) {
   final filteredRecords = startDate == null && endDate == null
