@@ -15,9 +15,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
   String selectedReport = "Selecione um Relatório";
 
   final ReportsController reportsController = ReportsController([
-    {'date': DateTime(2025, 1, 1), 'odometer': 1000, 'liters': 50, 'fuelType': 'Gasolina', 'pricePerLiter': 5.0},
-    {'date': DateTime(2024, 1, 5), 'odometer': 1050, 'liters': 40, 'fuelType': 'Etanol', 'pricePerLiter': 5.2},
-  ]);
+  {'date': DateTime(2025, 1, 1), 'odometer': 1000, 'liters': 50, 'fuelType': 'Gasolina', 'pricePerLiter': 5.0, 'totalCost': 250.0},
+  {'date': DateTime(2024, 1, 5), 'odometer': 1050, 'liters': 40, 'fuelType': 'Etanol', 'pricePerLiter': 5.2, 'totalCost': 40 * 5.2},  // Corrigido
+]);
 
   @override
   Widget build(BuildContext context) {
@@ -77,9 +77,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
               value: selectedReport,
               items: [
                 "Selecione um Relatório",
-                "Resumo em Lista",
+                "Resumo",
                 "Economia Correspondente (km/l)",
-                "Economia por Combustível",
+                "Combustível mais Econômico",
                 "Gastos Mensais",
               ].map((String value) {
                 return DropdownMenuItem<String>(
@@ -103,79 +103,120 @@ class _ReportsScreenState extends State<ReportsScreen> {
     );
   }
 
-  Widget _buildReport() {
-    final data = reportsController.calculateEconomy(startDate, endDate);
+ Widget _buildReport() {
+  // final data = reportsController.calculateEconomy(startDate, endDate);
 
-    if (selectedReport == "Selecione um Relatório") {
-      return const Center(child: Text("Por favor, selecione um relatório."));
-    }
+  if (selectedReport == "Selecione um Relatório") {
+    return const Center(child: Text("Por favor, selecione um relatório."));
+  }
 
-    switch (selectedReport) {
-      case "Resumo em Lista":
-        return ListView.builder(
-          itemCount: data.length,
-          itemBuilder: (context, index) {
-            final item = data[index];
-            return ListTile(
-              title: Text("Data: ${_formatDate(item.date)}"),
-              subtitle: Text("Economia: ${item.economy.toStringAsFixed(2)} km/l"),
-              trailing: Text("Gasto: R\$ ${item.expense.toStringAsFixed(2)}"),
-            );
-          },
-        );
+  switch (selectedReport) {
+    case "Resumo":
+      return ListView.builder(
+        itemCount: reportsController.fuelRecords.length,
+        itemBuilder: (context, index) {
+          final record = reportsController.fuelRecords[index];
 
-      case "Economia Correspondente (km/l)":
-        final economyData = reportsController.calculateEconomy(startDate, endDate);
-        return ListView.builder(
-          itemCount: economyData.length,
-          itemBuilder: (context, index) {
-            final item = economyData[index];
-
-            // Verifica se a economia é válida e exibe a data e economia
-            return ListTile(
-              title: Text("Abastecimento: ${_formatDate(item.date)}"),
-              subtitle: Text("Economia: ${item.economy.toStringAsFixed(2)} km/l"),
-            );
-          },
-        );
-
-      case "Economia por Combustível":
-        final savingsData = reportsController.calculateEconomyPerFuel(startDate, endDate);
-        return ListView.builder(
-          itemCount: savingsData.length,
-          itemBuilder: (context, index) {
-            final fuelType = savingsData.keys.elementAt(index);
-            final data = savingsData[fuelType];
-            final averageEconomy = data?['averageEconomy'] ?? 0.0;
-            final totalLiters = data?['totalLiters'] ?? 0.0;
-
-            return ListTile(
-              title: Text("Combustível: $fuelType"),
+          return Card(
+            margin: const EdgeInsets.symmetric(vertical: 8),
+            child: ListTile(
+              title: Text("Data: ${_formatDate(record['date'])}"),
               subtitle: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("Economia Média: ${averageEconomy.toStringAsFixed(2)} km/l"),
-                  Text("Litros Abastecidos: ${totalLiters.toStringAsFixed(2)} L"),
+                  Text("Odômetro: ${record['odometer']} km"),
+                  Text("Combustível: ${record['fuelType']}"),
+                  Text("Preço/L: R\$ ${record['pricePerLiter'].toStringAsFixed(2)}"),
+                  Text("Valor Abastecido: R\$ ${record['totalCost'] != null ? record['totalCost'].toStringAsFixed(2) : '0.00'}"),
+                  Text("Litros: ${record['liters'].toStringAsFixed(2)} L"),
                 ],
               ),
-            );
-          },
+            ),
+          );
+        },
+      );
+
+    case "Economia Correspondente (km/l)":
+      final economyData = reportsController.calculateEconomy(startDate, endDate);
+      return ListView.builder(
+        itemCount: economyData.length,
+        itemBuilder: (context, index) {
+          final item = economyData[index];
+
+          return Card(
+            margin: const EdgeInsets.symmetric(vertical: 8),
+            child: ListTile(
+              title: Text("Abastecimento: ${_formatDate(item.date)}"),
+              subtitle: Text("Economia: ${item.economy.toStringAsFixed(2)} km/l"),
+            ),
+          );
+        },
+      );
+
+    case "Combustível mais Econômico":
+      final savingsData = reportsController.calculateEconomyPerFuel(null, null);
+
+      String? mostEconomicFuel;
+      double highestEconomy = 0.0;
+
+      savingsData.forEach((fuelType, data) {
+        final averageEconomy = data['averageEconomy'] ?? 0.0;
+        if (averageEconomy > highestEconomy) {
+          highestEconomy = averageEconomy;
+          mostEconomicFuel = fuelType;
+        }
+      });
+
+      if (mostEconomicFuel != null) {
+        final data = savingsData[mostEconomicFuel];
+        return SizedBox(
+          height: 2,
+          child: Card(
+            margin: const EdgeInsets.symmetric(vertical: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ListTile(
+                  title: Text(
+                    "Combustível mais Econômico: $mostEconomicFuel",
+                  ),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Economia Média: ${data?['averageEconomy']?.toStringAsFixed(2)} km/l",
+                      ),
+                      Text(
+                        "Litros Abastecidos: ${data?['totalLiters']?.toStringAsFixed(2)} L",
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         );
-      case "Gastos Mensais":
-        final monthlyExpenses = reportsController.calculateMonthlyExpenses(startDate, endDate);
-        return ListView(
-          children: monthlyExpenses.entries.map((entry) {
-            return ListTile(
+      } else {
+        return const Center(child: Text("Nenhum dado de combustível disponível."));
+    }
+    case "Gastos Mensais":
+      final monthlyExpenses = reportsController.calculateMonthlyExpenses(startDate, endDate);
+      return ListView(
+        children: monthlyExpenses.entries.map((entry) {
+          return Card(
+            margin: const EdgeInsets.symmetric(vertical: 8),
+            child: ListTile(
               title: Text("Mês: ${entry.key}"),
               subtitle: Text("Gasto Total: R\$ ${entry.value.toStringAsFixed(2)}"),
-            );
-          }).toList(),
-        );
+            ),
+          );
+        }).toList(),
+      );
 
-      default:
-        return const Center(child: Text("Nenhum relatório disponível."));
-    }
+    default:
+      return const Center(child: Text("Nenhum relatório disponível."));
   }
+}
 
   String _formatDate(DateTime date) {
     return "${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}";
