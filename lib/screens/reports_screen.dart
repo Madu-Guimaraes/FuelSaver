@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
-import 'package:fuel_saver/widgets/calendar_widget.dart';
 import 'package:fuel_saver/controllers/reports_controller.dart';
+import 'package:fuel_saver/widgets/calendar_widget.dart';
 
 class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
@@ -13,31 +12,25 @@ class ReportsScreen extends StatefulWidget {
 class _ReportsScreenState extends State<ReportsScreen> {
   DateTime? startDate;
   DateTime? endDate;
-  String selectedGraph = "Selecione um Gráfico";
-  
-  // Passando uma lista de registros de combustível fictícios para o ReportsController
+  String selectedReport = "Selecione um Relatório";
+
   final ReportsController reportsController = ReportsController([
     {'date': DateTime(2025, 1, 1), 'odometer': 1000, 'liters': 50, 'fuelType': 'Gasolina', 'pricePerLiter': 5.0},
-    {'date': DateTime(2024, 1, 5), 'odometer': 1050, 'liters': 40, 'fuelType': 'Gasolina', 'pricePerLiter': 5.2},
-    // Adicione mais registros conforme necessário
+    {'date': DateTime(2024, 1, 5), 'odometer': 1050, 'liters': 40, 'fuelType': 'Etanol', 'pricePerLiter': 5.2},
   ]);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "Relatórios",
-          style: TextStyle(fontWeight: FontWeight.w500, color: Colors.grey),
-        ),
+        title: const Text("Relatórios"),
         backgroundColor: const Color(0XFFDCEDFF),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Row( mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 TextButton.icon(
                   icon: const Icon(Icons.calendar_today),
@@ -53,26 +46,41 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   },
                 ),
                 Expanded(
-                  child: Text(
-                    endDate == null
-                        ? startDate != null
-                            ? _formatDate(startDate!)
-                            : "Nenhuma data selecionada"
-                        : "${_formatDate(startDate!)} - ${_formatDate(endDate!)}",
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.end,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          endDate == null
+                              ? startDate != null
+                                  ? _formatDate(startDate!)
+                                  : "Nenhuma data selecionada"
+                              : "${_formatDate(startDate!)} - ${_formatDate(endDate!)}",
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          setState(() {
+                            startDate = null;
+                            endDate = null;
+                          });
+                        },
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 16),
             DropdownButton<String>(
-              value: selectedGraph,
+              value: selectedReport,
               items: [
-                "Selecione um Gráfico",
+                "Selecione um Relatório",
+                "Resumo em Lista",
                 "Economia Correspondente (km/l)",
-                "Comparação por Combustível",
-                "Gastos Mensais Totais",
+                "Economia por Combustível",
+                "Gastos Mensais",
               ].map((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
@@ -81,13 +89,13 @@ class _ReportsScreenState extends State<ReportsScreen> {
               }).toList(),
               onChanged: (value) {
                 setState(() {
-                  selectedGraph = value!;
+                  selectedReport = value!;
                 });
               },
             ),
             const SizedBox(height: 16),
             Expanded(
-              child: _buildGraph(),
+              child: _buildReport(),
             ),
           ],
         ),
@@ -95,161 +103,91 @@ class _ReportsScreenState extends State<ReportsScreen> {
     );
   }
 
-  Widget _buildGraph() {
-    final data = _getGraphData();
+  Widget _buildReport() {
+    final data = reportsController.calculateEconomy(startDate, endDate);
 
-    if (selectedGraph == "Selecione um Gráfico") {
-      return const Center(child: Text("Por favor, selecione um gráfico."));
+    if (selectedReport == "Selecione um Relatório") {
+      return const Center(child: Text("Por favor, selecione um relatório."));
     }
 
-    switch (selectedGraph) {
+    switch (selectedReport) {
+      case "Resumo em Lista":
+        return ListView.builder(
+          itemCount: data.length,
+          itemBuilder: (context, index) {
+            final item = data[index];
+            return ListTile(
+              title: Text("Data: ${_formatDate(item.date)}"),
+              subtitle: Text("Economia: ${item.economy.toStringAsFixed(2)} km/l"),
+              trailing: Text("Gasto: R\$ ${item.expense.toStringAsFixed(2)}"),
+            );
+          },
+        );
+
       case "Economia Correspondente (km/l)":
-        return LineChart(
-          LineChartData(
-            lineBarsData: [
-              LineChartBarData(
-                spots: data,
-                isCurved: true,
-                dotData: FlDotData(show: true),
-              ),
-            ],
-            titlesData: FlTitlesData(
-              leftTitles: AxisTitles(
-                sideTitles: SideTitles(
-                  showTitles: true,
-                  getTitlesWidget: (value, meta) {
-                    return Text('${value.toStringAsFixed(1)} km/L');
-                  },
-                ),
-              ),
-              bottomTitles: AxisTitles(
-                sideTitles: SideTitles(
-                  showTitles: true,
-                  getTitlesWidget: (value, meta) {
-                    return Text('Abast. ${value.toStringAsFixed(2)} L');
-                  },
-                ),
-              ),
-            ),
-          ),
+        final economyData = reportsController.calculateEconomy(startDate, endDate);
+        return ListView.builder(
+          itemCount: economyData.length,
+          itemBuilder: (context, index) {
+            final item = economyData[index];
+
+            // Verifica se a economia é válida e exibe a data e economia
+            return ListTile(
+              title: Text("Abastecimento: ${_formatDate(item.date)}"),
+              subtitle: Text("Economia: ${item.economy.toStringAsFixed(2)} km/l"),
+            );
+          },
         );
 
-      case "Comparação por Combustível":
-        return BarChart(
-          BarChartData(
-            barGroups: data.map((spot) {
-              return BarChartGroupData(
-                x: spot.x.toInt(),
-                barRods: [BarChartRodData(toY: spot.y)],
-              );
-            }).toList(),
-            titlesData: FlTitlesData(
-              leftTitles: AxisTitles(
-                sideTitles: SideTitles(
-                  showTitles: true,
-                  getTitlesWidget: (value, meta) {
-                    switch (value.toInt()) {
-                      case 0:
-                        return Text('Gasolina');
-                      case 1:
-                        return Text('Álcool');
-                      case 2:
-                        return Text('Diesel');
-                      default:
-                        return Text('Outro');
-                    }
-                  },
-                ),
-              ),
-              bottomTitles: AxisTitles(
-                sideTitles: SideTitles(
-                  showTitles: true,
-                  getTitlesWidget: (value, meta) {
-                    return Text('${value.toStringAsFixed(2)} R\$');
-                  },
-                ),
-              ),
-            ),
-          ),
-        );
+      case "Economia por Combustível":
+        final savingsData = reportsController.calculateEconomyPerFuel(startDate, endDate);
+        return ListView.builder(
+          itemCount: savingsData.length,
+          itemBuilder: (context, index) {
+            final fuelType = savingsData.keys.elementAt(index);
+            final data = savingsData[fuelType];
+            final averageEconomy = data?['averageEconomy'] ?? 0.0;
+            final totalLiters = data?['totalLiters'] ?? 0.0;
 
-      case "Gastos Mensais Totais":
-        return BarChart(
-          BarChartData(
-            barGroups: data.map((spot) {
-              return BarChartGroupData(
-                x: spot.x.toInt(),
-                barRods: [BarChartRodData(toY: spot.y)],
-              );
-            }).toList(),
-            titlesData: FlTitlesData(
-              leftTitles: AxisTitles(
-                sideTitles: SideTitles(
-                  showTitles: true,
-                  getTitlesWidget: (value, meta) {
-                    final month = DateTime(2025, value.toInt());
-                    return Text('${month.month}/${month.year}');
-                  },
-                ),
+            return ListTile(
+              title: Text("Combustível: $fuelType"),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Economia Média: ${averageEconomy.toStringAsFixed(2)} km/l"),
+                  Text("Litros Abastecidos: ${totalLiters.toStringAsFixed(2)} L"),
+                ],
               ),
-              bottomTitles: AxisTitles(
-                sideTitles: SideTitles(
-                  showTitles: true,
-                  getTitlesWidget: (value, meta) {
-                    return Text('R\$ ${value.toStringAsFixed(2)}');
-                  },
-                ),
-              ),
-            ),
-          ),
+            );
+          },
+        );
+      case "Gastos Mensais":
+        final monthlyExpenses = reportsController.calculateMonthlyExpenses(startDate, endDate);
+        return ListView(
+          children: monthlyExpenses.entries.map((entry) {
+            return ListTile(
+              title: Text("Mês: ${entry.key}"),
+              subtitle: Text("Gasto Total: R\$ ${entry.value.toStringAsFixed(2)}"),
+            );
+          }).toList(),
         );
 
       default:
-        return const Center(child: Text("Nenhum gráfico disponível."));
+        return const Center(child: Text("Nenhum relatório disponível."));
     }
   }
-
-List<FlSpot> _getGraphData() {
-  if (selectedGraph == "Economia Correspondente (km/l)") {
-    return reportsController.calculateEconomy(startDate, endDate);
-  } else if (selectedGraph == "Comparação por Combustível") {
-    final fuelComparison = reportsController.calculateFuelComparison(startDate, endDate);
-    return fuelComparison.entries.map((entry) {
-      int index = _getFuelTypeIndex(entry.key); 
-      return FlSpot(index.toDouble(), entry.value);
-    }).toList();
-  } else if (selectedGraph == "Gastos Mensais Totais") {
-    return reportsController.calculateMonthlyExpenses().entries.map((entry) {
-      return FlSpot(double.parse(entry.key.split('/')[0]), entry.value);
-    }).toList();
-  }
-  return [];
-}
-
-int _getFuelTypeIndex(String fuelType) {
-  switch (fuelType) {
-    case 'Gasolina':
-      return 0;
-    case 'Álcool':
-      return 1;
-    case 'Diesel':
-      return 2;
-    default:
-      return 3; // Adicione mais combustíveis conforme necessário
-  }
-}
 
   String _formatDate(DateTime date) {
     return "${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}";
   }
 
   Future<List<DateTime>> showCalendarWidget(BuildContext context) async {
-    final List<DateTime>? selectedDates = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => CalendarScreen(initialSelectedDates: []),
-      ),
-    );
-    return selectedDates ?? [];
+  final selectedDates = await Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => const CalendarScreen(),
+    ),
+  );
+  return selectedDates ?? [];
   }
 }
