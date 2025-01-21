@@ -21,6 +21,7 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^5.0.0
   intl: ^0.18.0
+  image_picker: ^0.8.7+4
 
 flutter:
   uses-material-design: true
@@ -28,3 +29,4 @@ flutter:
     - assets/img/logo.png
     - assets/img/carro.png
     - assets/img/carro_logo.png
+    - assets/default_profile.png

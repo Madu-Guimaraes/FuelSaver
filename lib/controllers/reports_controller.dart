@@ -1,9 +1,14 @@
 import 'package:fuel_saver/data/report_data.dart';
+import 'package:fuel_saver/controllers/refuel_controller.dart';
 
 class ReportsController {
-  final List<Map<String, dynamic>> fuelRecords;
+  final RefuelController refuelController;
 
-  ReportsController(this.fuelRecords);
+  ReportsController(this.refuelController);
+
+  List<Map<String, dynamic>> get fuelRecords => refuelController.getRefuels();
+
+  // ReportsController(this.fuelRecords); nao sei se deixo
 
   List<ReportData> calculateEconomy(DateTime? startDate, DateTime? endDate) {
     final filteredRecords = _filterRecords(startDate, endDate);

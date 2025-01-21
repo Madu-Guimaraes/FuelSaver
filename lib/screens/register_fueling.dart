@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:fuel_saver/screens/type_fuel_screen.dart';
 import 'package:fuel_saver/widgets/calendar_widget.dart';
 import 'package:fuel_saver/widgets/input_field.dart';
+import 'package:fuel_saver/controllers/refuel_controller.dart';
 import 'package:intl/intl.dart';
 
 class RegisterFueling extends StatefulWidget {
@@ -97,44 +98,44 @@ class _RegisterFuelingState extends State<RegisterFueling> {
   }
 
   // Função para salvar os dados de abastecimento
-  void _saveData() {
-    if (odometerController.text.isEmpty ||
-        fuelTypeController.text.isEmpty ||
-        pricePerLiterController.text.isEmpty ||
-        totalCostController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Por favor, preencha todos os campos!")),
-      );
-      return;
-    }
+final RefuelController refuelController = RefuelController();
 
-    try {
-      final refuelData = {
-        "odometer": double.parse(odometerController.text),
-        "fuelType": fuelTypeController.text,
-        "pricePerLiter": double.parse(pricePerLiterController.text),
-        "totalCost": double.parse(totalCostController.text),
-        "liters": double.parse(litersController.text),
-        "date": _selectedDates.isNotEmpty
-            ? DateFormat('dd/MM/yyyy').format(_selectedDates.first)
-            : '',
-      };
-
-      setState(() {
-        refuelDataList.add(refuelData);
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Dados de abastecimento salvos com sucesso!")),
-      );
-
-      _clearFields();
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Erro ao salvar os dados. Verifique os campos!")),
-      );
-    }
+void _saveData() {
+  if (odometerController.text.isEmpty ||
+      fuelTypeController.text.isEmpty ||
+      pricePerLiterController.text.isEmpty ||
+      totalCostController.text.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Por favor, preencha todos os campos!")),
+    );
+    return;
   }
+
+  try {
+    final refuelData = {
+      "odometer": double.parse(odometerController.text),
+      "fuelType": fuelTypeController.text,
+      "pricePerLiter": double.parse(pricePerLiterController.text),
+      "totalCost": double.parse(totalCostController.text),
+      "liters": double.parse(litersController.text),
+      "date": _selectedDates.isNotEmpty
+          ? DateFormat('dd/MM/yyyy').format(_selectedDates.first)
+          : '',
+    };
+
+    refuelController.saveRefuelData(refuelData); // Salva no controlador
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Dados de abastecimento salvos com sucesso!")),
+    );
+
+    _clearFields();
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Erro ao salvar os dados. Verifique os campos!")),
+    );
+  }
+}
 
   // Função para limpar os campos
   void _clearFields() {
@@ -153,7 +154,7 @@ class _RegisterFuelingState extends State<RegisterFueling> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Registrar Abastecimento"),
+        title: const Text("Registrar Abastecimento",style: TextStyle(color: Colors.grey)),
         backgroundColor: const Color(0XFFDCEDFF),
       ),
       body: SingleChildScrollView(
@@ -214,24 +215,37 @@ class _RegisterFuelingState extends State<RegisterFueling> {
                 readOnly: true,
                 borderBottom: true,
               ),
+              const SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   ElevatedButton(
                     onPressed: _saveData,
                     style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                    child: const Text("Salvar", style: TextStyle(color: Colors.white)),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        Icon(Icons.save, color: Colors.white),
+                        SizedBox(width: 8),
+                        Text("Salvar", style: TextStyle(color: Colors.white)),
+                      ],
+                    ),
                   ),
                   const SizedBox(width: 16),
                   ElevatedButton(
                     onPressed: _clearFields,
                     style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-                    child: const Text("Limpar", style: TextStyle(color: Colors.white)),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        Icon(Icons.clear, color: Colors.white),
+                        SizedBox(width: 8),
+                        Text("Limpar", style: TextStyle(color: Colors.white)),
+                      ],
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
-              const Text("Dados Salvos:"),
               ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
