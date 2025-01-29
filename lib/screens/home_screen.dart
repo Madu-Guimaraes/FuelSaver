@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:fuel_saver/widgets/vehicle_card.dart';
+import 'package:intl/intl.dart';
+import 'package:fuel_saver/controllers/refuel_controller.dart'; // Importar o RefuelController
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  final RefuelController refuelController = RefuelController(); // Instância do RefuelController
+
+  HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +33,7 @@ class HomeScreen extends StatelessWidget {
 
   Widget _buildCarModel() {
     return Padding(
-      padding: const EdgeInsets.symmetric( horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: const [
@@ -47,6 +51,42 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildCarInfoSection() {
+    // Obtendo os dados do último abastecimento e do próximo abastecimento
+    final lastRefuel = refuelController.getLastRefuel();
+    final nextRefuelDate = refuelController.estimateNextRefuelDate(30); // Distância diária média (exemplo: 30 km/dia)
+
+    if (lastRefuel == null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 60.0),
+              child: const Text(
+                'Nenhum abastecimento registrado.',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            SizedBox(height: 20),
+            Center(
+              child: const Text(
+                'Por favor, registre um abastecimento clicando no ícone "+"',
+                style: TextStyle(fontSize: 16),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final lastDate = lastRefuel['date'];
+    final totalCost = lastRefuel['totalCost'];
+    final liters = lastRefuel['liters'];
+    final distanceTraveled = lastRefuel['odometer'] - lastRefuel['previousOdometer']; // Distância percorrida
+
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Container(
@@ -58,8 +98,8 @@ class HomeScreen extends StatelessWidget {
           padding: const EdgeInsets.all(12.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              Text(
+            children: [
+              const Text(
                 "Car Informations",
                 style: TextStyle(
                   color: Colors.white,
@@ -67,26 +107,26 @@ class HomeScreen extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               InfoCard(
                 title: "Último Abastecimento",
-                data: "10/10/2022",
-                valor: 10.00,
-                total: 100.00,
+                data: lastDate,
+                valor: totalCost,
+                total: liters,
                 icon: Icons.local_gas_station,
                 backgroundColor: Colors.indigo,
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               InfoCard(
                 title: "Distância Percorrida",
-                km: 1000.000,
+                km: distanceTraveled,
                 icon: Icons.speed,
                 backgroundColor: Color(0xFF3381DE),
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               InfoCard(
                 title: "Próximo Abastecimento",
-                data: "22/12/2024",
+                data: nextRefuelDate ?? "Indeterminado",
                 icon: Icons.calendar_today,
                 backgroundColor: Color(0xFF3381DE),
               ),

@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:fuel_saver/controllers/user_controller.dart';
+import 'package:image_picker/image_picker.dart';
 
 class UserScreen extends StatefulWidget {
   const UserScreen({super.key});
@@ -13,13 +13,13 @@ class UserScreen extends StatefulWidget {
 class _UserScreenState extends State<UserScreen> {
   late final UserController userController;
   Map<String, String>? userData;
-  int? totalVehicles;
-  File? _profileImage;
   bool isNameEditable = false;
   bool isEmailEditable = false;
 
+  File? _profileImage;
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _vehiclesController = TextEditingController();
 
   @override
   void initState() {
@@ -33,9 +33,9 @@ class _UserScreenState extends State<UserScreen> {
     final vehicles = await userController.getTotalVehicles();
     setState(() {
       userData = data;
-      totalVehicles = vehicles;
       _nameController.text = data['name']!;
       _emailController.text = data['email']!;
+      _vehiclesController.text = vehicles.toString();
     });
   }
 
@@ -62,37 +62,12 @@ class _UserScreenState extends State<UserScreen> {
     );
   }
 
-  void _confirmDeleteAccount() async {
-    final shouldDelete = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Excluir Conta"),
-        content: const Text("Tem certeza de que deseja excluir sua conta? Esta ação é irreversível."),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text("Cancelar"),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text("Excluir"),
-          ),
-        ],
-      ),
-    );
-
-    if (shouldDelete == true) {
-      await userController.deleteUserAccount();
-      Navigator.of(context).pushReplacementNamed('/login');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: userData == null || totalVehicles == null
+        child: userData == null
             ? const Center(child: CircularProgressIndicator())
             : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -104,7 +79,7 @@ class _UserScreenState extends State<UserScreen> {
                         radius: 50,
                         backgroundImage: _profileImage != null
                             ? FileImage(_profileImage!)
-                            : const AssetImage('assets/default_profile.png') as ImageProvider,
+                            : null,
                         child: _profileImage == null
                             ? const Icon(
                                 Icons.camera_alt,
@@ -170,20 +145,15 @@ class _UserScreenState extends State<UserScreen> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          readOnly: true,
-                          initialValue: totalVehicles.toString(),
-                          decoration: const InputDecoration(
-                            labelText: "Total de Automóveis Cadastrados",
-                            prefixIcon: Icon(Icons.directions_car),
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                      ),
-                    ],
+                  TextFormField(
+                    controller: _vehiclesController,
+                    enabled: false,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: "Total de Automóveis Cadastrados",
+                      prefixIcon: Icon(Icons.directions_car),
+                      border: OutlineInputBorder(),
+                    ),
                   ),
                   const Spacer(),
                   Row(
@@ -191,13 +161,8 @@ class _UserScreenState extends State<UserScreen> {
                     children: [
                       ElevatedButton(
                         onPressed: _updateUserData,
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-                        child: const Text("Salvar Alterações"),
-                      ),
-                      ElevatedButton(
-                        onPressed: _confirmDeleteAccount,
                         style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                        child: const Text("Excluir Conta"),
+                        child: const Text("Excluir Conta", style: TextStyle(color: Colors.white)),
                       ),
                     ],
                   ),

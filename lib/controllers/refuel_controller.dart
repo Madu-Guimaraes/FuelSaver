@@ -52,4 +52,37 @@ class RefuelController {
       return isWithinDateRange && isFuelTypeMatch;
     }).toList();
   }
+
+  // Obter o último abastecimento
+  Map<String, dynamic>? getLastRefuel() {
+    if (_refuels.isEmpty) return null;
+    return _refuels.last;
+  }
+
+  // Calcular a próxima data estimada de abastecimento
+  String? estimateNextRefuelDate(double dailyDistance) {
+    if (_refuels.length < 2) return null;
+    
+    final lastRefuel = _refuels.last;
+    final previousRefuel = _refuels[_refuels.length - 2];
+
+    double lastOdometer = lastRefuel['odometer'];
+    double prevOdometer = previousRefuel['odometer'];
+    double liters = lastRefuel['liters'];
+
+    double distanceTraveled = lastOdometer - prevOdometer;
+    if (distanceTraveled <= 0 || liters <= 0) return null;
+
+    // Calcular o consumo médio (km/L)
+    double consumption = distanceTraveled / liters;
+
+    // Estimativa de autonomia restante
+    double remainingAutonomy = consumption * liters;
+
+    // Estimativa de dias para o próximo abastecimento com base na distância diária
+    int estimatedDays = (remainingAutonomy / dailyDistance).round();
+    DateTime nextRefuelDate = DateTime.now().add(Duration(days: estimatedDays));
+
+    return DateFormat('dd/MM/yyyy').format(nextRefuelDate);
+  }
 }
