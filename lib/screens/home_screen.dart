@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fuel_saver/widgets/vehicle_card.dart';
-import 'package:intl/intl.dart';
-import 'package:fuel_saver/controllers/refuel_controller.dart'; // Importar o RefuelController
+import 'package:fuel_saver/controllers/refuel_controller.dart'; 
 
 class HomeScreen extends StatelessWidget {
   final RefuelController refuelController = RefuelController(); // Instância do RefuelController
@@ -27,7 +26,7 @@ class HomeScreen extends StatelessWidget {
 
   Widget _buildCarImage() {
     return Center(
-      child: Image.asset('assets/img/carro.png', height: 220),
+      child: Image.asset('assets/img/carro.png', height: 260),
     );
   }
 

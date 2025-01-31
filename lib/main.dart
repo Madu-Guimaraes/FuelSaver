@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:fuel_saver/screens/bottom_navigator_bar.dart';
+import 'package:fuel_saver/screens/loading_screen.dart';
 
 void main() {
   runApp(const FuelSaverApp());
@@ -17,7 +17,7 @@ class FuelSaverApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         scaffoldBackgroundColor: const Color(0xFFDCEDFF), // Cor de fundo do Scaffold
       ),
-      home: const BottomNavBarScreen(), // Tela principal com BottomNavigationBar
+      home: LoadingScreen(), // Inicia com a tela de carregamento
     );
   }
 }

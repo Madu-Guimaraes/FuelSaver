@@ -11,6 +11,8 @@ class InputField extends StatelessWidget {
   final VoidCallback? onTap; // Define a ação ao clicar no campo
   final bool borderBottom; // Controla a borda inferior
   final Function(String)? onChanged;
+  final bool obscureText;
+  final Widget? suffixIcon;
 
   const InputField({
     super.key,
@@ -24,6 +26,8 @@ class InputField extends StatelessWidget {
     this.onTap,
     this.borderBottom = true, // Borda inferior ativada por padrão
     this.onChanged,
+    this.obscureText = false,
+    this.suffixIcon,
   });
 
   @override
@@ -37,9 +41,9 @@ class InputField extends StatelessWidget {
             const TextStyle(color: Color(0xFFB0B0B0)), // Cor do placeholder
         prefixIcon:
             Icon(icon, color: const Color(0xFFB0B0B0)), // Ícone do campo
+        suffixIcon: suffixIcon,
         border: borderBottom
             ? const UnderlineInputBorder(
-                // Borda inferior padrão
                 borderSide: BorderSide(color: Colors.grey),
                 borderRadius: BorderRadius.all(
                   Radius.circular(8),
@@ -68,6 +72,7 @@ class InputField extends StatelessWidget {
       validator: validator,
       readOnly: readOnly, // Campo somente leitura
       onTap: onTap,
+      obscureText: obscureText,
     );
   }
 }
