@@ -44,6 +44,8 @@
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<key>NSFaceIDUsageDescription</key>
+	<string>O aplicativo precisa de acesso ao Face ID para segurança</string>
 	<true/>
 </dict>
 </plist>

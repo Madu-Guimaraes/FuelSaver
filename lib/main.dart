@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fuel_saver/screens/loading_screen.dart';
+import 'package:fuel_saver/theme.dart'; // Arquivo de tema separado
 
 void main() {
   runApp(const FuelSaverApp());
@@ -12,12 +13,9 @@ class FuelSaverApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'FuelSaver',
-      debugShowCheckedModeBanner: false, // Remove o banner de debug
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        scaffoldBackgroundColor: const Color(0xFFDCEDFF), // Cor de fundo do Scaffold
-      ),
-      home: LoadingScreen(), // Inicia com a tela de carregamento
+      debugShowCheckedModeBanner: false,
+      theme: appTheme,
+      home: LoadingScreen(),
     );
   }
 }

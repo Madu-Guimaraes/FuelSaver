@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:fuel_saver/controllers/user_controller.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'login_screen.dart'; // Supondo que a tela de login esteja nesse arquivo
 
 class UserScreen extends StatefulWidget {
   const UserScreen({super.key});
@@ -21,6 +23,8 @@ class _UserScreenState extends State<UserScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _vehiclesController = TextEditingController();
 
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+
   @override
   void initState() {
     super.initState();
@@ -33,8 +37,8 @@ class _UserScreenState extends State<UserScreen> {
     final vehicles = await userController.getTotalVehicles();
     setState(() {
       userData = data;
-      _nameController.text = data['name']!;
-      _emailController.text = data['email']!;
+      _nameController.text = data['name'] ?? ''; // Nome vazio até o usuário preencher
+      _emailController.text = data['email']!; // Email será o mesmo de login
       _vehiclesController.text = vehicles.toString();
     });
   }
@@ -59,6 +63,33 @@ class _UserScreenState extends State<UserScreen> {
     });
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Informações atualizadas com sucesso!")),
+    );
+  }
+
+Future<void> _deleteAccount() async {
+  await userController.deleteUserAccount();  // Corrigir o nome do método aqui
+  await _storage.deleteAll(); // Limpa o armazenamento seguro (incluindo senha e e-mail)
+
+  // Redireciona para a tela de login após a exclusão da conta
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(builder: (context) => LoginScreen()),
+  );
+}
+
+  Future<void> _logout() async {
+    try {
+      await _storage.deleteAll();
+      print("Dados apagados com sucesso.");
+    } catch (e) {
+      print("Erro ao apagar os dados: $e");
+    }
+
+
+    // Redireciona para a tela de login
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => LoginScreen()),
     );
   }
 
@@ -160,9 +191,13 @@ class _UserScreenState extends State<UserScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       ElevatedButton(
-                        onPressed: _updateUserData,
+                        onPressed: _deleteAccount,
                         style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                         child: const Text("Excluir Conta", style: TextStyle(color: Colors.white)),
+                      ),
+                      ElevatedButton(
+                        onPressed: _logout,
+                        child: const Text("Sair"),
                       ),
                     ],
                   ),

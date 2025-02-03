@@ -58,7 +58,7 @@ class _BottomNavBarScreenState extends State<BottomNavBarScreen> {
             _selectedIndex, //Define o índice do item atualmente selecionado
         onTap: _onItemTapped,
         iconSize: 30.00,
-        items: [
+        items: [ //itens da barra
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Home',

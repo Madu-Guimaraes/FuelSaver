@@ -25,17 +25,11 @@ class CustomButton extends StatelessWidget {
     return ElevatedButton.icon(
       onPressed: onPressed,
       icon: icon != null ? Icon(icon, color: textColor) : const SizedBox.shrink(),
-      label: Text(
-        label,
-        style: TextStyle(color: textColor),
-      ),
+      label: Text(label, style: TextStyle(color: textColor)),
       style: ElevatedButton.styleFrom(
         backgroundColor: color,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(borderRadius),
-        ),
-        elevation: 0, // Sem sombra
-        side: BorderSide.none,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(borderRadius)),
+        elevation: 0,
       ),
     );
   }
